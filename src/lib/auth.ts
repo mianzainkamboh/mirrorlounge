@@ -1,0 +1,269 @@
+"use client";
+
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User,
+  sendPasswordResetEmail,
+  updateProfile,
+  updatePassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
+
+export interface UserRole {
+  uid: string;
+  email: string;
+  displayName?: string;
+  role: "admin" | "user";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Sign in with email and password
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    return { user: userCredential.user, error: null };
+  } catch (error: unknown) {
+    return {
+      user: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};
+
+// Sign out
+export const signOutUser = async (): Promise<{ error: string | null }> => {
+  try {
+    console.log("Signing out user...");
+    await signOut(auth);
+    console.log("Firebase sign out successful");
+    return { error: null };
+  } catch (error: unknown) {
+    console.error("Firebase sign out error:", error);
+    return { error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
+// Forgot password
+export const sendPasswordReset = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { error: null };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (
+  displayName: string
+): Promise<{ error: string | null }> => {
+  try {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName });
+      // Also update in Firestore
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userDocRef, {
+        displayName,
+        updatedAt: new Date(),
+      });
+    }
+    return { error: null };
+  } catch (error: unknown) {
+    console.error("Error updating profile:", error);
+    return { error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
+// Update user password
+export const updateUserPassword = async (
+  newPassword: string
+): Promise<{ error: string | null }> => {
+  try {
+    if (auth.currentUser) {
+      await updatePassword(auth.currentUser, newPassword);
+    }
+    return { error: null };
+  } catch (error: unknown) {
+    console.error("Error updating password:", error);
+    return { error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
+// Get user role from Firestore
+export const getUserRole = async (uid: string): Promise<UserRole | null> => {
+  try {
+    const userDoc = await getDoc(doc(db, "users", uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return {
+        ...data,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate()
+          : new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate
+          ? data.updatedAt.toDate()
+          : new Date(data.updatedAt),
+      } as UserRole;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting user role:", error);
+    return null;
+  }
+};
+
+// Set user role in Firestore
+export const setUserRole = async (
+  uid: string,
+  email: string,
+  role: "admin" | "user",
+  displayName?: string
+): Promise<{ error: string | null }> => {
+  try {
+    const userData: UserRole = {
+      uid,
+      email,
+      displayName,
+      role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    await setDoc(doc(db, "users", uid), userData);
+    return { error: null };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
+// Auth state listener
+export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};
+
+// Create admin user if doesn't exist
+export const createAdminUser = async (): Promise<{
+  success: boolean;
+  error: string | null;
+}> => {
+  try {
+    console.log("Creating admin user: ahmadxeikh786@gmail.com");
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      "ahmadxeikh786@gmail.com",
+      "786786"
+    );
+
+    // Set display name
+    await updateProfile(userCredential.user, { displayName: "Ahmad Sheikh" });
+
+    // Create user role in Firestore
+    await setUserRole(
+      userCredential.user.uid,
+      "ahmadxeikh786@gmail.com",
+      "admin",
+      "Ahmad Sheikh"
+    );
+
+    console.log("Admin user created successfully");
+    return { success: true, error: null };
+  } catch (error: unknown) {
+    console.error("Error creating admin user:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};
+
+// Create new user with email and password without affecting current session
+export const createNewUser = async (
+  email: string,
+  password: string,
+  displayName: string,
+  role: "admin" | "user"
+): Promise<{ success: boolean; error: string | null; user?: User }> => {
+  try {
+    console.log("Creating new user:", email);
+
+    // Save current user info
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return { success: false, error: "No authenticated user found" };
+    }
+
+    // Create a secondary Firebase app instance to avoid affecting current session
+    const { initializeApp } = await import("firebase/app");
+    const { getAuth, createUserWithEmailAndPassword, updateProfile, signOut } =
+      await import("firebase/auth");
+
+    // Use the same config but create a secondary app
+    const secondaryApp = initializeApp(
+      {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      },
+      "secondary"
+    );
+
+    const secondaryAuth = getAuth(secondaryApp);
+
+    // Create user with secondary auth instance
+    const userCredential = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      email,
+      password
+    );
+
+    // Set display name on the new user
+    if (displayName) {
+      await updateProfile(userCredential.user, { displayName });
+    }
+
+    // Create user role in Firestore using the main app's database
+    await setUserRole(userCredential.user.uid, email, role, displayName);
+
+    // Sign out from secondary auth to clean up
+    await signOut(secondaryAuth);
+
+    // Clean up the secondary app (delete method may not be available in all versions)
+    try {
+      if (
+        "delete" in secondaryApp &&
+        typeof secondaryApp.delete === "function"
+      ) {
+        await secondaryApp.delete();
+      }
+    } catch (error) {
+      console.log("Secondary app cleanup not needed or failed:", error);
+    }
+
+    console.log(
+      "New user created successfully without affecting current session"
+    );
+    return { success: true, error: null, user: userCredential.user };
+  } catch (error: unknown) {
+    console.error("Error creating new user:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};
+
+// Get current user
+export const getCurrentUser = () => {
+  return auth.currentUser;
+};

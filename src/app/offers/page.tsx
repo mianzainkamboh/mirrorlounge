@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   Offer,
   addOffer,
@@ -207,36 +208,38 @@ export default function OffersPage() {
   }
 
   return (
-    <div className="p-3">
+    <div className="p-2 sm:p-3">
       <div className="max-w-5xl mx-auto">
         {/* Compact Header */}
-        <div className="mb-4">
+        <div className="mb-3 sm:mb-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-lg font-medium text-pink-600 mb-1">Special Offers</h1>
+              <h1 className="text-base sm:text-lg font-medium text-pink-600 mb-1">Special Offers</h1>
               <p className="text-xs text-pink-500">Create and manage promotional banners</p>
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-pink-200/50 hover:border-pink-300/50"
+              className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium transition-all border border-pink-200/50 hover:border-pink-300/50"
             >
-              Create Offer
+              <span className="hidden sm:inline">Create Offer</span>
+              <span className="sm:hidden">Create</span>
             </button>
           </div>
         </div>
 
         {/* Compact Banner-Style Offers */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {offers.map((offer, index) => (
-            <div key={offer.id} className="bg-white/90 backdrop-blur-xl border border-pink-200/30 rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(233,30,99,0.15)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(233,30,99,0.25)] hover:scale-[1.01] group">
+            <div key={offer.id} className="bg-white/90 backdrop-blur-xl border border-pink-200/30 rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(233,30,99,0.15)] transition-all duration-300 hover:shadow-[0_12px_40px_rgb(233,30,99,0.25)] hover:scale-[1.01] group">
               {/* Compact Banner Header */}
-              <div className="relative h-20 overflow-hidden">
+              <div className="relative h-16 sm:h-20 overflow-hidden">
                 {offer.imageBase64 ? (
                   <div className="relative h-full">
-                    <img 
+                    <Image 
                       src={offer.imageBase64} 
                       alt={offer.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     {/* Gradient overlay for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
@@ -248,47 +251,47 @@ export default function OffersPage() {
                 )}
                 
                 {/* Compact Discount Badge */}
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <div className="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg">
-                    <div className="text-lg font-bold text-pink-600">{formatDiscount(offer)}</div>
+                <div className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-2 shadow-lg">
+                    <div className="text-sm sm:text-lg font-bold text-pink-600">{formatDiscount(offer)}</div>
                     <div className="text-xs text-pink-500 uppercase tracking-wide font-medium">OFF</div>
                   </div>
                 </div>
 
                 {/* Compact Offer Content */}
-                <div className="absolute left-24 top-1/2 transform -translate-y-1/2 text-white">
-                  <h2 className="text-sm font-bold mb-1 drop-shadow-lg">{offer.title}</h2>
-                  <p className="text-xs opacity-90 drop-shadow-md max-w-sm truncate">{offer.description}</p>
+                <div className="absolute left-16 sm:left-24 top-1/2 transform -translate-y-1/2 text-white right-16 sm:right-20">
+                  <h2 className="text-xs sm:text-sm font-bold mb-1 drop-shadow-lg truncate">{offer.title}</h2>
+                  <p className="text-xs opacity-90 drop-shadow-md truncate">{offer.description}</p>
                 </div>
 
                 {/* Compact Action Buttons */}
-                <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
                   <button
                     onClick={() => handleEdit(offer)}
-                    className="w-6 h-6 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center text-pink-600 hover:bg-white hover:scale-110 text-xs transition-all shadow-md"
+                    className="w-5 h-5 sm:w-6 sm:h-6 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center text-pink-600 hover:bg-white hover:scale-110 text-xs transition-all shadow-md"
                   >
                     ✎
                   </button>
                   <button
                     onClick={() => handleDelete(offer)}
-                    className="w-6 h-6 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center text-pink-600 hover:bg-red-50 hover:text-red-600 hover:scale-110 text-xs transition-all shadow-md"
+                    className="w-5 h-5 sm:w-6 sm:h-6 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center text-pink-600 hover:bg-red-50 hover:text-red-600 hover:scale-110 text-xs transition-all shadow-md"
                   >
                     ×
                   </button>
                 </div>
 
                 {/* Compact Status Badge */}
-                <div className="absolute top-2 left-2">
+                <div className="absolute top-1 sm:top-2 left-1 sm:left-2">
                   <button
                     onClick={() => toggleStatus(offer)}
-                    className={`px-1.5 py-0.5 rounded-full font-medium transition-all duration-300 shadow-sm backdrop-blur-sm border ${
+                    className={`px-1 sm:px-1.5 py-0.5 rounded-full font-medium transition-all duration-300 shadow-sm backdrop-blur-sm border ${
                       offer.isActive && !isExpired(offer.validTo)
                         ? 'bg-emerald-500/90 text-white hover:bg-emerald-600/90 border-emerald-400/30'
                         : isExpired(offer.validTo)
                         ? 'bg-gray-500/90 text-white border-gray-400/30'
                         : 'bg-rose-500/90 text-white hover:bg-rose-600/90 border-rose-400/30'
                     }`}
-                    style={{ fontSize: '9px' }}
+                    style={{ fontSize: '8px' }}
                   >
                     {isExpired(offer.validTo) ? 'Expired' : offer.isActive ? 'Active' : 'Inactive'}
                   </button>
@@ -296,21 +299,21 @@ export default function OffersPage() {
               </div>
 
               {/* Compact Footer Info */}
-              <div className="p-2 bg-gradient-to-r from-pink-50/50 to-transparent">
+              <div className="p-1.5 sm:p-2 bg-gradient-to-r from-pink-50/50 to-transparent">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-pink-600">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-1 sm:space-y-0">
+                    <span className="text-pink-600 text-xs">
                       <strong>Valid:</strong> {new Date(offer.validFrom).toLocaleDateString()} - {new Date(offer.validTo).toLocaleDateString()}
                     </span>
                     {offer.usageLimit && (
-                      <span className="text-pink-600">
+                      <span className="text-pink-600 text-xs">
                         <strong>Usage:</strong> {offer.usedCount}/{offer.usageLimit}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     {offer.usageLimit && (
-                      <div className="w-16 bg-pink-200 rounded-full h-1">
+                      <div className="w-12 sm:w-16 bg-pink-200 rounded-full h-1">
                         <div 
                           className="h-1 rounded-full bg-pink-500"
                           style={{ width: `${Math.min((offer.usedCount / offer.usageLimit) * 100, 100)}%` }}
@@ -327,12 +330,12 @@ export default function OffersPage() {
 
         {/* Compact Empty State */}
         {offers.length === 0 && !loading && (
-          <div className="text-center py-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-200 to-pink-300 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <div className="text-sm text-pink-600">🏷️</div>
+          <div className="text-center py-4 sm:py-6">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-200 to-pink-300 rounded-xl flex items-center justify-center mx-auto mb-2">
+              <div className="text-xs sm:text-sm text-pink-600">🏷️</div>
             </div>
             <h3 className="text-xs font-semibold text-pink-700 mb-1">No offers yet</h3>
-            <p className="text-xs text-pink-500 mb-3">Create your first promotional offer</p>
+            <p className="text-xs text-pink-500 mb-3 px-4">Create your first promotional offer</p>
             <button
               onClick={() => setShowModal(true)}
               className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 px-3 py-1.5 rounded-lg text-xs font-medium border border-pink-200/50"
@@ -344,23 +347,24 @@ export default function OffersPage() {
 
         {/* Small Compact Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white/90 backdrop-blur-xl border border-pink-200/30 rounded-2xl shadow-[0_20px_50px_rgb(233,30,99,0.35)] w-full max-w-sm">
-              <div className="p-4">
-                <h3 className="text-sm font-semibold text-pink-700 mb-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="bg-white/90 backdrop-blur-xl border border-pink-200/30 rounded-xl sm:rounded-2xl shadow-[0_20px_50px_rgb(233,30,99,0.35)] w-full max-w-sm max-h-[90vh] overflow-y-auto">
+              <div className="p-3 sm:p-4">
+                <h3 className="text-sm font-semibold text-pink-700 mb-3 sm:mb-4">
                   {editingOffer ? 'Edit Offer' : 'Create Offer'}
                 </h3>
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
                   {/* Compact Image Upload */}
                   <div>
                     <label className="block text-xs font-medium text-pink-600 mb-1">Image</label>
                     <div className="relative">
                       {formData.image ? (
-                        <div className="relative w-full h-16 rounded-lg overflow-hidden border border-pink-200/50">
-                          <img 
+                        <div className="relative w-full h-14 sm:h-16 rounded-lg overflow-hidden border border-pink-200/50">
+                          <Image 
                             src={formData.image} 
                             alt="Banner preview"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                           <button
                             type="button"
@@ -374,9 +378,9 @@ export default function OffersPage() {
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-16 border-2 border-pink-200/50 border-dashed rounded-lg cursor-pointer bg-pink-50/30 hover:bg-pink-50/50 transition-all">
+                        <label className="flex flex-col items-center justify-center w-full h-14 sm:h-16 border-2 border-pink-200/50 border-dashed rounded-lg cursor-pointer bg-pink-50/30 hover:bg-pink-50/50 transition-all">
                           <div className="flex flex-col items-center justify-center">
-                            <div className="w-6 h-6 bg-pink-100 rounded-md flex items-center justify-center mb-1">
+                            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-pink-100 rounded-md flex items-center justify-center mb-1">
                               <span className="text-pink-500 text-xs">🏷️</span>
                             </div>
                             <p className="text-xs text-pink-600 font-medium">Upload</p>
@@ -398,7 +402,7 @@ export default function OffersPage() {
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
+                      className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
                       placeholder="Offer title"
                       required
                     />
@@ -409,7 +413,7 @@ export default function OffersPage() {
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all resize-none text-xs"
+                      className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all resize-none text-xs"
                       rows={2}
                       placeholder="Description"
                       required
@@ -423,7 +427,7 @@ export default function OffersPage() {
                         <select
                           value={formData.discountType}
                           onChange={(e) => setFormData({ ...formData, discountType: e.target.value as 'percentage' | 'fixed' })}
-                          className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs appearance-none bg-white cursor-pointer"
+                          className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs appearance-none bg-white cursor-pointer"
                         >
                           <option value="percentage">%</option>
                           <option value="fixed">AED</option>
@@ -446,7 +450,7 @@ export default function OffersPage() {
                             setFormData({ ...formData, discountValue: value === '' ? 0 : parseFloat(value) });
                           }
                         }}
-                        className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         min="0"
                         step={formData.discountType === 'percentage' ? '1' : '0.01'}
                         placeholder="0"
@@ -462,7 +466,7 @@ export default function OffersPage() {
                         type="date"
                         value={formData.validFrom}
                         onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
-                        className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
+                        className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
                         required
                       />
                     </div>
@@ -472,7 +476,7 @@ export default function OffersPage() {
                         type="date"
                         value={formData.validTo}
                         onChange={(e) => setFormData({ ...formData, validTo: e.target.value })}
-                        className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
+                        className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs"
                         required
                       />
                     </div>
@@ -489,7 +493,7 @@ export default function OffersPage() {
                           setFormData({ ...formData, usageLimit: value === '' ? undefined : parseInt(value) });
                         }
                       }}
-                      className="w-full px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       placeholder="Unlimited"
                     />
@@ -507,19 +511,19 @@ export default function OffersPage() {
                     </label>
                   </div>
 
-                  <div className="flex justify-end space-x-2 pt-3 border-t border-pink-100">
+                  <div className="flex justify-end space-x-2 pt-2 sm:pt-3 border-t border-pink-100">
                     <button
                       type="button"
                       onClick={resetForm}
                       disabled={uploading}
-                      className="px-3 py-1.5 text-pink-600 bg-pink-50/60 rounded-lg text-xs font-medium hover:bg-pink-100/60 transition-all disabled:opacity-50"
+                      className="px-2 sm:px-3 py-1.5 text-pink-600 bg-pink-50/60 rounded-lg text-xs font-medium hover:bg-pink-100/60 transition-all disabled:opacity-50"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={uploading}
-                      className="px-3 py-1.5 bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 rounded-lg text-xs font-medium border border-pink-200/50 hover:border-pink-300/50 transition-all disabled:opacity-50 flex items-center space-x-1"
+                      className="px-2 sm:px-3 py-1.5 bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 rounded-lg text-xs font-medium border border-pink-200/50 hover:border-pink-300/50 transition-all disabled:opacity-50 flex items-center space-x-1"
                     >
                       {uploading && (
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-pink-600"></div>

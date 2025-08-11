@@ -29,13 +29,44 @@
   --salon-white: #ffffff;
 }
 
-/* Content with margins and border radius */
+/* Content with margins and border radius - Responsive */
 .content-container {
-  margin: 1rem;
+  margin: 0.5rem;
   border-radius: 1rem;
   background: white;
   box-shadow: 0 4px 6px -1px #ff8f8f;
   min-height: calc(100vh - 120px);
+}
+
+@media (min-width: 640px) {
+  .content-container {
+    margin: 1rem;
+  }
+}
+
+/* Responsive utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Animation utilities */

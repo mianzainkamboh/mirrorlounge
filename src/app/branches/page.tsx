@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
     Branch,
     addBranch,
@@ -73,7 +74,7 @@ export default function BranchesPage() {
                 try {
                     // Compress image to reduce size (max 800px width, 80% quality)
                     imageBase64 = await compressImage(imageFile, 800, 0.8);
-                } catch (compressionError) {
+                } catch {
                     // Fallback to regular base64 conversion if compression fails
                     imageBase64 = await convertFileToBase64(imageFile);
                 }
@@ -245,10 +246,11 @@ export default function BranchesPage() {
                                         <div className="relative">
                                             {formData.image ? (
                                                 <div className="relative w-full h-32 rounded-lg overflow-hidden border border-pink-200/50">
-                                                    <img
+                                                    <Image
                                                         src={formData.image}
                                                         alt="Branch preview"
-                                                        className="w-full h-full object-cover"
+                                                        fill
+                                                        className="object-cover"
                                                     />
                                                     <button
                                                         type="button"
@@ -446,10 +448,11 @@ function BranchCard({ branch, onEdit, onDelete, onToggleStatus }: {
             <div className="relative h-48 overflow-hidden">
                 {branch.imageBase64 ? (
                     <div className="relative h-full">
-                        <img
+                        <Image
                             src={branch.imageBase64}
                             alt={branch.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                     </div>

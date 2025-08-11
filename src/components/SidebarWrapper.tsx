@@ -5,9 +5,15 @@ import Sidebar from '@/components/Sidebar';
 export default function SidebarWrapper({
   collapsed,
   setCollapsed,
+  isMobile = false,
+  isOpen = false,
+  onClose,
 }: {
   collapsed: boolean;
   setCollapsed: (val: boolean) => void;
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }) {
   useEffect(() => {
     const handler = () => {
@@ -18,5 +24,5 @@ export default function SidebarWrapper({
     return () => window.removeEventListener('toggle-sidebar', handler);
   }, [setCollapsed]);
 
-  return <Sidebar collapsed={collapsed} />;
+  return <Sidebar collapsed={collapsed} isMobile={isMobile} isOpen={isOpen} onClose={onClose} />;
 }
