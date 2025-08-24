@@ -209,17 +209,7 @@ export default function CategoriesPage() {
           </div>
         )}
 
-        {/* Unisex Categories Section */}
-        {categories.filter(cat => cat.gender === 'unisex').length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-2xl font-bold text-purple-600 mb-3 sm:mb-4">Unisex Categories</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-              {categories.filter(cat => cat.gender === 'unisex').map((category) => (
-                <CategoryCard key={category.id} category={category} onEdit={handleEdit} onDelete={handleDelete} />
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Compact Empty State */}
         {categories.length === 0 && !loading && (
@@ -317,12 +307,11 @@ export default function CategoriesPage() {
                     <div className="relative">
                       <select
                         value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'men' | 'women' | 'unisex' })}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'men' | 'women' })}
                         className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs appearance-none bg-white cursor-pointer"
                       >
                         <option value="men">Men</option>
                         <option value="women">Women</option>
-                        <option value="unisex">Unisex</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg className="w-3 h-3 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,7 +361,6 @@ function CategoryCard({ category, onEdit, onDelete }: {
     switch (gender) {
       case 'men': return 'bg-blue-100 text-blue-700';
       case 'women': return 'bg-pink-100 text-pink-700';
-      case 'unisex': return 'bg-purple-100 text-purple-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };

@@ -3,17 +3,23 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { 
-  Offer,
-  addOffer,
-  updateOffer,
-  deleteOffer,
-  subscribeToOffersChanges,
-  convertFileToBase64,
-  compressImage
+  addOffer, 
+  updateOffer, 
+  deleteOffer, 
+  subscribeToOffersChanges, 
+  subscribeToBranchesChanges,
+  subscribeToServicesChanges,
+  compressImage,
+  type Offer,
+  type Branch,
+  type Service 
 } from '@/lib/firebaseServicesNoStorage';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
@@ -25,15 +31,20 @@ export default function OffersPage() {
     validFrom: '',
     validTo: '',
     isActive: true,
-    usageLimit: undefined as number | undefined,
-    image: ''
+    usageLimit: null as number | null,
+    image: '',
+    targetBranches: [] as string[],
+    targetServices: [] as string[]
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Subscribe to real-time updates
   useEffect(() => {
-    const unsubscribe = subscribeToOffersChanges(
+    const unsubscribeOffers = subscribeToOffersChanges(
       (updatedOffers) => {
         setOffers(updatedOffers);
         setLoading(false);
@@ -45,7 +56,29 @@ export default function OffersPage() {
       }
     );
 
-    return () => unsubscribe();
+    const unsubscribeBranches = subscribeToBranchesChanges(
+      (branchesData) => {
+        setBranches(branchesData);
+      },
+      (error) => {
+        console.error('Error fetching branches:', error);
+      }
+    );
+
+    const unsubscribeServices = subscribeToServicesChanges(
+      (servicesData) => {
+        setServices(servicesData);
+      },
+      (error) => {
+        console.error('Error fetching services:', error);
+      }
+    );
+
+    return () => {
+      unsubscribeOffers();
+      unsubscribeBranches();
+      unsubscribeServices();
+    };
   }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +91,26 @@ export default function OffersPage() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // Handle branch selection
+  const handleBranchSelection = (branchId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      targetBranches: prev.targetBranches.includes(branchId)
+        ? prev.targetBranches.filter(id => id !== branchId)
+        : [...prev.targetBranches, branchId]
+    }));
+  };
+
+  // Handle service selection
+  const handleServiceSelection = (serviceId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      targetServices: prev.targetServices.includes(serviceId)
+        ? prev.targetServices.filter(id => id !== serviceId)
+        : [...prev.targetServices, serviceId]
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +134,7 @@ export default function OffersPage() {
 
       if (editingOffer) {
         // Update existing offer
-        await updateOffer(editingOffer.id!, {
+        const updateData: Partial<Offer> = {
           title: formData.title,
           description: formData.description,
           discountType: formData.discountType,
@@ -89,13 +142,21 @@ export default function OffersPage() {
           validFrom: formData.validFrom,
           validTo: formData.validTo,
           isActive: formData.isActive,
-          usageLimit: formData.usageLimit,
           imageBase64: imageBase64,
-          usedCount: editingOffer.usedCount // Keep existing usage count
-        });
+          usedCount: editingOffer.usedCount, // Keep existing usage count
+          targetBranches: formData.targetBranches,
+          targetServices: formData.targetServices
+        };
+        
+        // Only add usageLimit if it has a valid value
+        if (formData.usageLimit !== null && formData.usageLimit !== undefined) {
+          updateData.usageLimit = formData.usageLimit;
+        }
+        
+        await updateOffer(editingOffer.id!, updateData);
       } else {
         // Add new offer
-        await addOffer({
+        const offerData: Omit<Offer, 'id' | 'createdAt' | 'updatedAt'> = {
           title: formData.title,
           description: formData.description,
           discountType: formData.discountType,
@@ -103,10 +164,18 @@ export default function OffersPage() {
           validFrom: formData.validFrom,
           validTo: formData.validTo,
           isActive: formData.isActive,
-          usageLimit: formData.usageLimit,
           usedCount: 0,
-          imageBase64: imageBase64
-        });
+          imageBase64: imageBase64,
+          targetBranches: formData.targetBranches,
+          targetServices: formData.targetServices
+        };
+        
+        // Only add usageLimit if it has a valid value
+        if (formData.usageLimit !== null && formData.usageLimit !== undefined) {
+          offerData.usageLimit = formData.usageLimit;
+        }
+        
+        await addOffer(offerData);
       }
 
       resetForm();
@@ -127,8 +196,10 @@ export default function OffersPage() {
       validFrom: '',
       validTo: '',
       isActive: true,
-      usageLimit: undefined,
-      image: ''
+      usageLimit: null,
+      image: '',
+      targetBranches: [],
+      targetServices: []
     });
     setImageFile(null);
     setShowModal(false);
@@ -146,21 +217,38 @@ export default function OffersPage() {
       validTo: offer.validTo,
       isActive: offer.isActive,
       usageLimit: offer.usageLimit,
-      image: offer.imageBase64 || ''
+      usedCount: offer.usedCount,
+      imageBase64: offer.imageBase64 || '',
+      targetBranches: offer.targetBranches || offer.selectedBranches || [],
+      targetServices: offer.targetServices || offer.selectedServices || []
     });
-    setImageFile(null);
     setShowModal(true);
   };
 
-  const handleDelete = async (offer: Offer) => {
-    if (confirm('Delete this offer?')) {
-      try {
-        await deleteOffer(offer.id!);
-      } catch (error) {
-        console.error('Error deleting offer:', error);
-        alert('Error deleting offer. Please try again.');
-      }
+  const handleDelete = (offer: Offer) => {
+    setOfferToDelete(offer);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!offerToDelete) return;
+    
+    setDeleting(true);
+    try {
+      await deleteOffer(offerToDelete.id!);
+      setShowDeleteModal(false);
+      setOfferToDelete(null);
+    } catch (error) {
+      console.error('Error deleting offer:', error);
+      alert('Error deleting offer. Please try again.');
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setOfferToDelete(null);
   };
 
   const toggleStatus = async (offer: Offer) => {
@@ -300,28 +388,73 @@ export default function OffersPage() {
 
               {/* Compact Footer Info */}
               <div className="p-1.5 sm:p-2 bg-gradient-to-r from-pink-50/50 to-transparent">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-1 sm:space-y-0">
-                    <span className="text-pink-600 text-xs">
-                      <strong>Valid:</strong> {new Date(offer.validFrom).toLocaleDateString()} - {new Date(offer.validTo).toLocaleDateString()}
-                    </span>
-                    {offer.usageLimit && (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-1 sm:space-y-0">
                       <span className="text-pink-600 text-xs">
-                        <strong>Usage:</strong> {offer.usedCount}/{offer.usageLimit}
+                        <strong>Valid:</strong> {new Date(offer.validFrom).toLocaleDateString()} - {new Date(offer.validTo).toLocaleDateString()}
                       </span>
-                    )}
+                      {offer.usageLimit && (
+                        <span className="text-pink-600 text-xs">
+                          <strong>Usage:</strong> {offer.usedCount}/{offer.usageLimit}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      {offer.usageLimit && (
+                        <div className="w-12 sm:w-16 bg-pink-200 rounded-full h-1">
+                          <div 
+                            className="h-1 rounded-full bg-pink-500"
+                            style={{ width: `${Math.min((offer.usedCount / offer.usageLimit) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      )}
+                      <span className="text-pink-500 font-medium text-xs">{offer.usedCount} uses</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1 sm:space-x-2">
-                    {offer.usageLimit && (
-                      <div className="w-12 sm:w-16 bg-pink-200 rounded-full h-1">
-                        <div 
-                          className="h-1 rounded-full bg-pink-500"
-                          style={{ width: `${Math.min((offer.usedCount / offer.usageLimit) * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                    )}
-                    <span className="text-pink-500 font-medium text-xs">{offer.usedCount} uses</span>
-                  </div>
+                  
+                  {/* Targeting Information */}
+                  {(offer.selectedBranches?.length > 0 || offer.selectedServices?.length > 0) && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs">
+                      {offer.selectedBranches?.length > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <span className="text-pink-600 font-medium">Branches:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {offer.selectedBranches.slice(0, 2).map((branchId) => {
+                              const branch = branches.find(b => b.id === branchId);
+                              return (
+                                <span key={branchId} className="bg-pink-100/80 text-pink-700 px-1.5 py-0.5 rounded text-xs">
+                                  {branch?.name || 'Unknown'}
+                                </span>
+                              );
+                            })}
+                            {offer.selectedBranches.length > 2 && (
+                              <span className="text-pink-500 text-xs">+{offer.selectedBranches.length - 2} more</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {offer.selectedServices?.length > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <span className="text-blue-600 font-medium">Services:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {offer.selectedServices.slice(0, 2).map((serviceId) => {
+                              const service = services.find(s => s.id === serviceId);
+                              return (
+                                <span key={serviceId} className="bg-blue-100/80 text-blue-700 px-1.5 py-0.5 rounded text-xs">
+                                  {service?.name || 'Unknown'}
+                                </span>
+                              );
+                            })}
+                            {offer.selectedServices.length > 2 && (
+                              <span className="text-blue-500 text-xs">+{offer.selectedServices.length - 2} more</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -490,13 +623,111 @@ export default function OffersPage() {
                       onChange={(e) => {
                         const value = e.target.value;
                         if (value === '' || parseInt(value) >= 0) {
-                          setFormData({ ...formData, usageLimit: value === '' ? undefined : parseInt(value) });
+                          setFormData({ ...formData, usageLimit: value === '' ? null : parseInt(value) });
                         }
                       }}
                       className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       placeholder="Unlimited"
                     />
+                  </div>
+
+                  {/* Branch Selection */}
+                  <div>
+                    <label className="block text-xs font-medium text-pink-600 mb-1">Target Branches</label>
+                    <div className="relative">
+                      <select
+                        onChange={(e) => {
+                          const branchId = e.target.value;
+                          if (branchId && !formData.targetBranches.includes(branchId)) {
+                            handleBranchSelection(branchId);
+                          }
+                          e.target.value = ''; // Reset select
+                        }}
+                        className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs appearance-none bg-white cursor-pointer"
+                      >
+                        <option value="">Select branches...</option>
+                        {branches.filter(branch => !formData.targetBranches.includes(branch.id!)).map((branch) => (
+                          <option key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                        <svg className="w-3 h-3 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Selected Branches Chips */}
+                    {formData.targetBranches.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {formData.targetBranches.map((branchId) => {
+                          const branch = branches.find(b => b.id === branchId);
+                          return (
+                            <div key={branchId} className="flex items-center bg-pink-100/60 text-pink-700 px-2 py-1 rounded-md text-xs">
+                              <span className="mr-1">{branch?.name || 'Unknown'}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleBranchSelection(branchId)}
+                                className="text-pink-500 hover:text-pink-700 ml-1"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Service Selection */}
+                  <div>
+                    <label className="block text-xs font-medium text-pink-600 mb-1">Target Services</label>
+                    <div className="relative">
+                      <select
+                        onChange={(e) => {
+                          const serviceId = e.target.value;
+                          if (serviceId && !formData.targetServices.includes(serviceId)) {
+                            handleServiceSelection(serviceId);
+                          }
+                          e.target.value = ''; // Reset select
+                        }}
+                        className="w-full px-2 sm:px-3 py-2 border border-pink-200/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs appearance-none bg-white cursor-pointer"
+                      >
+                        <option value="">Select services...</option>
+                        {services.filter(service => !formData.targetServices.includes(service.id!)).map((service) => (
+                          <option key={service.id} value={service.id}>
+                            {service.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                        <svg className="w-3 h-3 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Selected Services Chips */}
+                    {formData.targetServices.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {formData.targetServices.map((serviceId) => {
+                          const service = services.find(s => s.id === serviceId);
+                          return (
+                            <div key={serviceId} className="flex items-center bg-blue-100/60 text-blue-700 px-2 py-1 rounded-md text-xs">
+                              <span className="mr-1">{service?.name || 'Unknown'}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleServiceSelection(serviceId)}
+                                className="text-blue-500 hover:text-blue-700 ml-1"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -537,6 +768,19 @@ export default function OffersPage() {
           </div>
         )}
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Delete Offer"
+        message={`Are you sure you want to delete "${offerToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -270,24 +270,7 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Unisex Services Section */}
-        {categories.filter(cat => cat.gender === 'unisex').length > 0 && 
-         services.filter(service => {
-           const serviceCategory = categories.find(cat => cat.name === service.category);
-           return serviceCategory?.gender === 'unisex';
-         }).length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-2xl font-bold text-purple-600 mb-3 sm:mb-4">Unisex Services</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-              {services.filter(service => {
-                const serviceCategory = categories.find(cat => cat.name === service.category);
-                return serviceCategory?.gender === 'unisex';
-              }).map((service) => (
-                <ServiceCard key={service.id} service={service} onEdit={handleEdit} onDelete={handleDelete} onToggleStatus={toggleStatus} getCategoryColor={getCategoryColor} />
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Compact Empty State */}
         {services.length === 0 && !loading && (

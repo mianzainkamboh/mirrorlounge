@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { onAuthStateChange, getUserRole, setUserRole as createUserRole, UserRole } from '@/lib/auth';
+import { auth, initializeFirebase } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -32,12 +33,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (user) => {
-      setUser(user);
+    // Check if Firebase auth is available
+    if (typeof window === 'undefined') {
+      console.warn('Running on server side, skipping auth initialization');
+      setLoading(false);
+      return;
+    }
 
-      if (user) {
-        // Get user role from Firestore
-        let role = await getUserRole(user.uid);
+    // Ensure Firebase is initialized
+    initializeFirebase();
+    
+    // Wait for Firebase initialization with timeout
+    const initializeAuth = () => {
+      console.log('Auth object:', auth);
+      console.log('Auth type:', typeof auth);
+      
+      if (!auth) {
+        console.warn('Firebase auth not yet initialized, retrying...');
+        return false;
+      }
+      
+      console.log('Firebase auth initialized successfully, setting up listener');
+      return true;
+    };
+    
+    // Try immediate initialization
+    if (initializeAuth()) {
+      setupAuthListener();
+      return;
+    }
+    
+    // If not ready, wait with timeout
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = 500; // 500ms
+    
+    const retryTimer = setInterval(() => {
+      retryCount++;
+      
+      if (initializeAuth()) {
+        clearInterval(retryTimer);
+        setupAuthListener();
+      } else if (retryCount >= maxRetries) {
+        clearInterval(retryTimer);
+        console.error('Firebase auth failed to initialize after', maxRetries, 'retries');
+        setLoading(false);
+      }
+    }, retryInterval);
+    
+    return () => {
+      clearInterval(retryTimer);
+    };
+    
+    function setupAuthListener() {
+
+      const unsubscribe = onAuthStateChange(async (user) => {
+        setUser(user);
+
+        if (user) {
+          // Get user role from Firestore
+          let role = await getUserRole(user.uid);
 
         // If user doesn't exist in Firestore, create them with appropriate role
         if (!role && user.email) {
@@ -88,6 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => unsubscribe();
+    }
   }, []);
 
   const isAdmin = userRole?.role === 'admin';

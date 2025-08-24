@@ -11,9 +11,11 @@ import {
   FolderOpen,
   Scissors,
   Tag,
-
+  MessageCircle,
   Users,
-  User
+  User,
+  Calendar,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -29,7 +31,9 @@ const navItems = [
   { icon: FolderOpen, label: "Categories", href: "/catagories", roles: ['admin', 'user'] },
   { icon: Scissors, label: "Services", href: "/services", roles: ['admin', 'user'] },
   { icon: Tag, label: "Offers", href: "/offers", roles: ['admin', 'user'] },
-  // { icon: Building2, label: "Branches", href: "/branches", roles: ['admin', 'user'] },
+  { icon: Calendar, label: "Bookings", href: "/bookings", roles: ['admin'] },
+  { icon: MessageCircle, label: "Chat", href: "/chat", roles: ['admin'] },
+  { icon: Building2, label: "Branches", href: "/branches", roles: ['admin', 'user'] },
   { icon: Users, label: "Users", href: "/users", roles: ['admin'] },
   { icon: User, label: "Profile", href: "/profile", roles: ['admin', 'user'] },
 ];

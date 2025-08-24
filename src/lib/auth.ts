@@ -13,6 +13,8 @@ import {
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
+
+
 export interface UserRole {
   uid: string;
   email: string;
@@ -24,6 +26,9 @@ export interface UserRole {
 
 // Sign in with email and password
 export const signInWithEmail = async (email: string, password: string) => {
+  if (!auth) {
+    return { user: null, error: "Firebase auth is not initialized" };
+  }
   try {
     const userCredential = await signInWithEmailAndPassword(
       auth,
@@ -42,6 +47,9 @@ export const signInWithEmail = async (email: string, password: string) => {
 // Sign out
 export const signOutUser = async (): Promise<{ error: string | null }> => {
   try {
+    if (!auth) {
+      return { error: "Firebase auth is not initialized" };
+    }
     console.log("Signing out user...");
     await signOut(auth);
     console.log("Firebase sign out successful");
@@ -55,6 +63,7 @@ export const signOutUser = async (): Promise<{ error: string | null }> => {
 // Forgot password
 export const sendPasswordReset = async (email: string) => {
   try {
+    if (!auth) throw new Error("Firebase auth is not initialized");
     await sendPasswordResetEmail(auth, email);
     return { error: null };
   } catch (error: unknown) {
@@ -67,9 +76,13 @@ export const updateUserProfile = async (
   displayName: string
 ): Promise<{ error: string | null }> => {
   try {
+    if (!auth) {
+      return { error: "Firebase auth is not initialized" };
+    }
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName });
       // Also update in Firestore
+      if (!db) throw new Error("Firestore is not initialized");
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       await updateDoc(userDocRef, {
         displayName,
@@ -88,6 +101,9 @@ export const updateUserPassword = async (
   newPassword: string
 ): Promise<{ error: string | null }> => {
   try {
+    if (!auth) {
+      return { error: "Firebase auth is not initialized" };
+    }
     if (auth.currentUser) {
       await updatePassword(auth.currentUser, newPassword);
     }
@@ -101,6 +117,7 @@ export const updateUserPassword = async (
 // Get user role from Firestore
 export const getUserRole = async (uid: string): Promise<UserRole | null> => {
   try {
+    if (!db) throw new Error("Firestore is not initialized");
     const userDoc = await getDoc(doc(db, "users", uid));
     if (userDoc.exists()) {
       const data = userDoc.data();
@@ -137,6 +154,7 @@ export const setUserRole = async (
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    if (!db) throw new Error("Firestore is not initialized");
     await setDoc(doc(db, "users", uid), userData);
     return { error: null };
   } catch (error: unknown) {
@@ -146,6 +164,10 @@ export const setUserRole = async (
 
 // Auth state listener
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  if (!auth) {
+    console.warn('Firebase auth is not initialized. Authentication state changes will not be tracked.');
+    return () => {}; // Return empty unsubscribe function
+  }
   return onAuthStateChanged(auth, callback);
 };
 
@@ -155,6 +177,9 @@ export const createAdminUser = async (): Promise<{
   error: string | null;
 }> => {
   try {
+    if (!auth) {
+      return { success: false, error: "Firebase auth is not initialized" };
+    }
     console.log("Creating admin user: ahmadxeikh786@gmail.com");
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -195,7 +220,7 @@ export const createNewUser = async (
     console.log("Creating new user:", email);
 
     // Save current user info
-    const currentUser = auth.currentUser;
+    const currentUser = auth?.currentUser;
     if (!currentUser) {
       return { success: false, error: "No authenticated user found" };
     }
@@ -265,5 +290,9 @@ export const createNewUser = async (
 
 // Get current user
 export const getCurrentUser = () => {
+  if (!auth) {
+    console.warn('Firebase auth is not initialized.');
+    return null;
+  }
   return auth.currentUser;
 };

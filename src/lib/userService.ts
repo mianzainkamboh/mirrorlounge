@@ -10,12 +10,17 @@ import {
   orderBy,
   onSnapshot
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, isFirebaseConfigured } from './firebase';
 import { UserRole } from './auth';
 
 // Get all users
 export const getAllUsers = async (): Promise<UserRole[]> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      console.warn('Firebase is not configured, returning empty users list');
+      return [];
+    }
+
     const usersRef = collection(db, 'users');
     const q = query(usersRef, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
@@ -36,6 +41,11 @@ export const subscribeToUsersChanges = (
   callback: (users: UserRole[]) => void,
   onError?: (error: Error) => void
 ) => {
+  if (!isFirebaseConfigured() || !db) {
+    console.warn('Firebase is not configured, skipping users subscription');
+    return () => {}; // Return empty unsubscribe function
+  }
+
   const usersRef = collection(db, 'users');
   const q = query(usersRef, orderBy('createdAt', 'desc'));
   
@@ -58,6 +68,10 @@ export const subscribeToUsersChanges = (
 // Update user role
 export const updateUserRole = async (uid: string, role: 'admin' | 'user') => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      return { error: 'Firebase is not configured. Please set up your Firebase environment variables.' };
+    }
+
     await updateDoc(doc(db, 'users', uid), {
       role,
       updatedAt: new Date()
@@ -71,6 +85,10 @@ export const updateUserRole = async (uid: string, role: 'admin' | 'user') => {
 // Delete user
 export const deleteUser = async (uid: string) => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      return { error: 'Firebase is not configured. Please set up your Firebase environment variables.' };
+    }
+
     await deleteDoc(doc(db, 'users', uid));
     return { error: null };
   } catch (error: unknown) {

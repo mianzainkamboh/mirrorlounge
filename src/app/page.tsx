@@ -91,7 +91,7 @@ export default function Dashboard() {
   // Calculate real-time statistics
   const menServices = services.filter(service => service.category.toLowerCase().includes('men'));
   const womenServices = services.filter(service => service.category.toLowerCase().includes('women'));
-  const unisexServices = services.filter(service => service.category.toLowerCase().includes('unisex'));
+
   const activeServices = services.filter(service => service.isActive);
   // const activeBranches = branches.filter(branch => branch.isActive);
   const activeOffers = offers.filter(offer => offer.isActive && new Date(offer.validTo) >= new Date());
@@ -225,13 +225,7 @@ export default function Dashboard() {
                   </div>
                   <span className="text-sm font-bold text-pink-700">{womenServices.length}</span>
                 </div>
-                <div className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg bg-purple-50/50">
-                  <div className="flex items-center space-x-1.5 sm:space-x-2">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 rounded-full"></div>
-                    <span className="text-xs font-medium text-purple-700">Unisex Services</span>
-                  </div>
-                  <span className="text-sm font-bold text-purple-700">{unisexServices.length}</span>
-                </div>
+
               </div>
             </div>
           </div>
@@ -297,9 +291,7 @@ export default function Dashboard() {
                 <span className="text-blue-600">Men: {categories.filter(cat => cat.gender === 'men').length}</span>
                 <span className="text-pink-600">Women: {categories.filter(cat => cat.gender === 'women').length}</span>
               </div>
-              <div className="text-xs text-purple-600">
-                Unisex: {categories.filter(cat => cat.gender === 'unisex').length}
-              </div>
+
             </div>
           </div>
 

@@ -23,6 +23,11 @@ service firebase.storage {
     match /offers/{offerId}/{allPaths=**} {
       allow read, write: if true; // For development - make this more restrictive in production
     }
+    
+    // Allow read/write access to chat images folder
+    match /chat_images/{allPaths=**} {
+      allow read, write: if true; // For development - make this more restrictive in production
+    }
   }
 }
 
@@ -48,6 +53,12 @@ service firebase.storage {
     }
     
     match /offers/{offerId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Chat images - authenticated users can upload, everyone can read
+    match /chat_images/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }

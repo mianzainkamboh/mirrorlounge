@@ -10,7 +10,7 @@ import {
   orderBy,
   Timestamp 
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, isFirebaseConfigured } from './firebase';
 
 // Category interface - using base64 images instead of Storage URLs
 export interface Category {
@@ -25,8 +25,11 @@ export interface Category {
   updatedAt?: Timestamp;
 }
 
-// Categories collection reference
-const categoriesCollection = collection(db, 'categories');
+// Categories collection reference - will be initialized when Firebase is configured
+let categoriesCollection: CollectionReference | null = null;
+if (isFirebaseConfigured() && db) {
+  categoriesCollection = collection(db, 'categories');
+}
 
 // Convert file to base64 string
 export const convertFileToBase64 = (file: File): Promise<string> => {
@@ -71,6 +74,10 @@ export const compressImage = (file: File, maxWidth: number = 800, quality: numbe
 // Add new category
 export const addCategory = async (categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   try {
+    if (!isFirebaseConfigured() || !db || !categoriesCollection) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const docRef = await addDoc(categoriesCollection, {
       ...categoryData,
       createdAt: Timestamp.now(),
@@ -86,6 +93,10 @@ export const addCategory = async (categoryData: Omit<Category, 'id' | 'createdAt
 // Update category
 export const updateCategory = async (categoryId: string, categoryData: Partial<Category>): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const categoryRef = doc(db, 'categories', categoryId);
     await updateDoc(categoryRef, {
       ...categoryData,
@@ -100,6 +111,10 @@ export const updateCategory = async (categoryId: string, categoryData: Partial<C
 // Delete category
 export const deleteCategory = async (categoryId: string): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const categoryRef = doc(db, 'categories', categoryId);
     await deleteDoc(categoryRef);
   } catch (error) {
@@ -111,6 +126,11 @@ export const deleteCategory = async (categoryId: string): Promise<void> => {
 // Get all categories
 export const getCategories = async (): Promise<Category[]> => {
   try {
+    if (!isFirebaseConfigured() || !db || !categoriesCollection) {
+      console.warn('Firebase is not configured, returning empty categories list');
+      return [];
+    }
+
     const q = query(categoriesCollection, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const categories: Category[] = [];
@@ -134,6 +154,11 @@ export const subscribeToCategoriesChanges = (
   callback: (categories: Category[]) => void,
   errorCallback?: (error: Error) => void
 ) => {
+  if (!isFirebaseConfigured() || !db || !categoriesCollection) {
+    console.warn('Firebase is not configured, skipping categories subscription');
+    return () => {}; // Return empty unsubscribe function
+  }
+
   const q = query(categoriesCollection, orderBy('createdAt', 'desc'));
   
   return onSnapshot(q, (querySnapshot) => {
@@ -169,12 +194,19 @@ export interface Service {
   updatedAt?: Timestamp;
 }
 
-// Services collection reference
-const servicesCollection = collection(db, 'services');
+// Services collection reference - will be initialized when Firebase is configured
+let servicesCollection: CollectionReference | null = null;
+if (isFirebaseConfigured() && db) {
+  servicesCollection = collection(db, 'services');
+}
 
 // Add new service
 export const addService = async (serviceData: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   try {
+    if (!isFirebaseConfigured() || !db || !servicesCollection) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const docRef = await addDoc(servicesCollection, {
       ...serviceData,
       createdAt: Timestamp.now(),
@@ -190,6 +222,10 @@ export const addService = async (serviceData: Omit<Service, 'id' | 'createdAt' |
 // Update service
 export const updateService = async (serviceId: string, serviceData: Partial<Service>): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const serviceRef = doc(db, 'services', serviceId);
     await updateDoc(serviceRef, {
       ...serviceData,
@@ -204,6 +240,10 @@ export const updateService = async (serviceId: string, serviceData: Partial<Serv
 // Delete service
 export const deleteService = async (serviceId: string): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const serviceRef = doc(db, 'services', serviceId);
     await deleteDoc(serviceRef);
   } catch (error) {
@@ -215,6 +255,11 @@ export const deleteService = async (serviceId: string): Promise<void> => {
 // Get all services
 export const getServices = async (): Promise<Service[]> => {
   try {
+    if (!isFirebaseConfigured() || !db || !servicesCollection) {
+      console.warn('Firebase is not configured, returning empty services list');
+      return [];
+    }
+
     const q = query(servicesCollection, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const services: Service[] = [];
@@ -238,6 +283,11 @@ export const subscribeToServicesChanges = (
   callback: (services: Service[]) => void,
   errorCallback?: (error: Error) => void
 ) => {
+  if (!isFirebaseConfigured() || !db || !servicesCollection) {
+    console.warn('Firebase is not configured, skipping services subscription');
+    return () => {}; // Return empty unsubscribe function
+  }
+
   const q = query(servicesCollection, orderBy('createdAt', 'desc'));
   
   return onSnapshot(q, (querySnapshot) => {
@@ -276,12 +326,19 @@ export interface Branch {
   updatedAt?: Timestamp;
 }
 
-// Branches collection reference
-const branchesCollection = collection(db, 'branches');
+// Branches collection reference - will be initialized when Firebase is configured
+let branchesCollection: CollectionReference | null = null;
+if (isFirebaseConfigured() && db) {
+  branchesCollection = collection(db, 'branches');
+}
 
 // Add new branch
 export const addBranch = async (branchData: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   try {
+    if (!isFirebaseConfigured() || !db || !branchesCollection) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const docRef = await addDoc(branchesCollection, {
       ...branchData,
       createdAt: Timestamp.now(),
@@ -297,6 +354,10 @@ export const addBranch = async (branchData: Omit<Branch, 'id' | 'createdAt' | 'u
 // Update branch
 export const updateBranch = async (branchId: string, branchData: Partial<Branch>): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const branchRef = doc(db, 'branches', branchId);
     await updateDoc(branchRef, {
       ...branchData,
@@ -311,6 +372,10 @@ export const updateBranch = async (branchId: string, branchData: Partial<Branch>
 // Delete branch
 export const deleteBranch = async (branchId: string): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const branchRef = doc(db, 'branches', branchId);
     await deleteDoc(branchRef);
   } catch (error) {
@@ -322,6 +387,11 @@ export const deleteBranch = async (branchId: string): Promise<void> => {
 // Get all branches
 export const getBranches = async (): Promise<Branch[]> => {
   try {
+    if (!isFirebaseConfigured() || !db || !branchesCollection) {
+      console.warn('Firebase is not configured, returning empty branches list');
+      return [];
+    }
+
     const q = query(branchesCollection, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const branches: Branch[] = [];
@@ -345,6 +415,11 @@ export const subscribeToBranchesChanges = (
   callback: (branches: Branch[]) => void,
   errorCallback?: (error: Error) => void
 ) => {
+  if (!isFirebaseConfigured() || !db || !branchesCollection) {
+    console.warn('Firebase is not configured, skipping branches subscription');
+    return () => {}; // Return empty unsubscribe function
+  }
+
   const q = query(branchesCollection, orderBy('createdAt', 'desc'));
   
   return onSnapshot(q, (querySnapshot) => {
@@ -379,16 +454,25 @@ export interface Offer {
   usageLimit?: number;
   usedCount: number;
   imageBase64?: string;
+  selectedBranches: string[]; // Array of branch IDs
+  selectedServices: string[]; // Array of service IDs
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
 
-// Offers collection reference
-const offersCollection = collection(db, 'offers');
+// Offers collection reference - will be initialized when Firebase is configured
+let offersCollection: CollectionReference | null = null;
+if (isFirebaseConfigured() && db) {
+  offersCollection = collection(db, 'offers');
+}
 
 // Add new offer
 export const addOffer = async (offerData: Omit<Offer, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
   try {
+    if (!isFirebaseConfigured() || !db || !offersCollection) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const docRef = await addDoc(offersCollection, {
       ...offerData,
       createdAt: Timestamp.now(),
@@ -404,6 +488,10 @@ export const addOffer = async (offerData: Omit<Offer, 'id' | 'createdAt' | 'upda
 // Update offer
 export const updateOffer = async (offerId: string, offerData: Partial<Offer>): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const offerRef = doc(db, 'offers', offerId);
     await updateDoc(offerRef, {
       ...offerData,
@@ -418,6 +506,10 @@ export const updateOffer = async (offerId: string, offerData: Partial<Offer>): P
 // Delete offer
 export const deleteOffer = async (offerId: string): Promise<void> => {
   try {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase is not configured. Please set up your Firebase environment variables.');
+    }
+
     const offerRef = doc(db, 'offers', offerId);
     await deleteDoc(offerRef);
   } catch (error) {
@@ -429,6 +521,11 @@ export const deleteOffer = async (offerId: string): Promise<void> => {
 // Get all offers
 export const getOffers = async (): Promise<Offer[]> => {
   try {
+    if (!isFirebaseConfigured() || !db || !offersCollection) {
+      console.warn('Firebase is not configured, returning empty offers list');
+      return [];
+    }
+
     const q = query(offersCollection, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
     const offers: Offer[] = [];

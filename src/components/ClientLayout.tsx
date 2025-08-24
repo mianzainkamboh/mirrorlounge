@@ -6,6 +6,7 @@ import SidebarWrapper from './SidebarWrapper';
 import Navbar from './Navbar';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
+import FirebaseDebug from './FirebaseDebug';
 
 export default function ClientLayout({
   children,
@@ -60,6 +61,7 @@ export default function ClientLayout({
 
   return (
     <AuthProvider>
+      <FirebaseDebug />
       {isPublicPage ? (
         // Public pages (like sign-in) - no protection needed
         children
