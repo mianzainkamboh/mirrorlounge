@@ -9,36 +9,23 @@ import { getAuth, Auth } from "firebase/auth";
 
 // Validate Firebase environment variables
 function validateFirebaseConfig() {
-  const requiredEnvVars = [
-    'NEXT_PUBLIC_FIREBASE_API_KEY',
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'NEXT_PUBLIC_FIREBASE_APP_ID'
-  ];
-
-  const missingVars = requiredEnvVars.filter(varName => {
-    const value = process.env[varName];
-    return !value || value.trim() === '';
-  });
-
+  // Using hardcoded values, so configuration is always valid
   return {
-    isValid: missingVars.length === 0,
-    missingVars
+    isValid: true,
+    missingVars: []
   };
 }
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyBYQA66rKOPrb4kce-hYCTYAbGKanVGbZ8",
+  authDomain: "mirrorsbeautylounge-7c5ff.firebaseapp.com",
+  projectId: "mirrorsbeautylounge-7c5ff",
+  storageBucket: "mirrorsbeautylounge-7c5ff.firebasestorage.app",
+  messagingSenderId: "1029530532506",
+  appId: "1:1029530532506:web:2fa18cc521b2524e5afd23",
+  measurementId: "G-GMWQSDP9JW"
 };
 
 // Initialize Firebase services
@@ -51,12 +38,10 @@ let analytics: Analytics | null = null;
 // Initialize Firebase only on client side
 function initializeFirebase() {
   if (typeof window === 'undefined') {
-    console.log('Server side detected, skipping Firebase initialization');
     return;
   }
   
   if (app) {
-    console.log('Firebase already initialized');
     return;
   }
   
@@ -72,16 +57,7 @@ function initializeFirebase() {
       storage = getStorage(app);
       auth = getAuth(app);
       
-      // Verify auth is properly initialized
-      if (auth) {
-        console.log('Firebase Auth initialized successfully:', {
-          app: !!app,
-          auth: !!auth,
-          authType: typeof auth
-        });
-      } else {
-        console.error('Firebase Auth failed to initialize - auth is null');
-      }
+
       
       // Initialize Analytics with error handling
       try {
@@ -91,16 +67,14 @@ function initializeFirebase() {
         analytics = null;
       }
       
-      console.log('Firebase initialized successfully');
+
     } catch (error) {
       console.error('Firebase initialization failed:', error);
       // Ensure auth is null on error
       auth = null;
     }
   } else {
-    console.warn('Firebase configuration is incomplete. Missing environment variables:', configValidation.missingVars);
-    console.warn('Please check your .env.local file and ensure all Firebase environment variables are set.');
-    console.warn('The application will continue to run without Firebase functionality.');
+
     // Explicitly set auth to null when config is invalid
     auth = null;
   }

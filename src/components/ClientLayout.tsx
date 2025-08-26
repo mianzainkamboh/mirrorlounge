@@ -6,7 +6,7 @@ import SidebarWrapper from './SidebarWrapper';
 import Navbar from './Navbar';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
-import FirebaseDebug from './FirebaseDebug';
+
 
 export default function ClientLayout({
   children,
@@ -19,10 +19,16 @@ export default function ClientLayout({
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if current page should be protected
-  const isPublicPage = pathname === '/signin';
+  const isPublicPage = pathname === '/signin' || pathname === '/test';
+
+  // Test useEffect to debug hook execution
+  useEffect(() => {
+    console.log('🧪 ClientLayout: Test useEffect is running!');
+  }, []);
 
   // Check if mobile on mount and window resize
   useEffect(() => {
+    console.log('📱 ClientLayout: Mobile check useEffect is running!');
     const checkMobile = () => {
       const mobile = window.innerWidth < 768; // md breakpoint
       setIsMobile(mobile);
@@ -59,9 +65,13 @@ export default function ClientLayout({
     }
   };
 
+  // For test page, render without any auth wrapping
+  if (pathname === '/test') {
+    return children;
+  }
+
   return (
     <AuthProvider>
-      <FirebaseDebug />
       {isPublicPage ? (
         // Public pages (like sign-in) - no protection needed
         children

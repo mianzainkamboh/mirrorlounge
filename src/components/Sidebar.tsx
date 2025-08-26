@@ -80,10 +80,12 @@ export default function Sidebar({ collapsed, isMobile = false, isOpen = false, o
       }}
       className={cn(
         "fixed left-0 top-0 z-50 flex flex-col overflow-hidden",
-        "shadow-lg bg-white/95 backdrop-blur-sm border border-pink-400/20",
+        "bg-gradient-to-br from-white/95 via-pink-50/90 to-white/95",
+        "backdrop-blur-xl border border-pink-200/40 shadow-2xl shadow-pink-500/10",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-pink-100/20 before:to-transparent before:pointer-events-none",
         isMobile
           ? "h-full m-0 rounded-none border-r"
-          : "h-[95vh] m-2 rounded-2xl"
+          : "h-[95vh] m-2 rounded-3xl"
       )}
       style={{
         willChange: 'transform, width',
@@ -96,32 +98,41 @@ export default function Sidebar({ collapsed, isMobile = false, isOpen = false, o
         "relative z-10 flex flex-col h-full items-center",
         isMobile ? "px-4 py-4 safe-area-inset-top" : "px-2 py-6"
       )}>
-        {/* Simple Logo */}
+        {/* Enhanced Logo */}
         <motion.div
           className={cn(
-            "flex-shrink-0 flex flex-col items-center justify-center mb-4 mx-auto",
-            isMobile ? "py-2" : "py-3 mb-3"
+            "flex-shrink-0 flex flex-col items-center justify-center mb-6 mx-auto relative",
+            "bg-gradient-to-br from-pink-100/50 to-pink-200/30 rounded-2xl p-3",
+            "shadow-lg shadow-pink-500/20 border border-pink-200/50",
+            isMobile ? "py-3" : "py-4 mb-4"
           )}
           layout
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.2 }}
+          whileHover={{ scale: 1.02, y: -1 }}
         >
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-400/10 to-transparent rounded-2xl" />
           {(collapsed && !isMobile) ? (
-            <span
-              className="text-pink-600 text-2xl"
+            <motion.span
+              className="text-pink-600 text-3xl font-bold relative z-10 drop-shadow-sm"
               style={curvyStyles}
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400 }}
             >
               M
-            </span>
+            </motion.span>
           ) : (
-            <h1
+            <motion.h1
               className={cn(
-                "text-pink-600 text-center",
-                isMobile ? "text-2xl" : "text-lg"
+                "text-pink-600 text-center relative z-10 drop-shadow-sm",
+                "bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent",
+                isMobile ? "text-2xl" : "text-xl"
               )}
               style={curvyStyles}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400 }}
             >
               Mirror Salon
-            </h1>
+            </motion.h1>
           )}
         </motion.div>
 
@@ -153,26 +164,35 @@ export default function Sidebar({ collapsed, isMobile = false, isOpen = false, o
                   <Link href={href} onClick={handleNavClick}>
                     <motion.div
                       layout
-                      transition={{ duration: 0.15 }}
+                      transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
+                      whileHover={{ scale: 1.02, x: 2 }}
+                      whileTap={{ scale: 0.98 }}
                       className={cn(
-                        "flex items-center rounded-xl cursor-pointer relative transition-all duration-200",
+                        "group flex items-center rounded-2xl cursor-pointer relative transition-all duration-300",
+                        "backdrop-blur-sm border border-transparent",
                         isMobile
                           ? "px-4 py-3.5 min-h-[48px]"
                           : collapsed
-                            ? "px-2.5 py-1.5 justify-center"
-                            : "px-2.5 py-1.5",
+                            ? "px-3 py-2 justify-center"
+                            : "px-3 py-2",
                         isActive
-                          ? "bg-pink-500/20 text-pink-600 shadow-sm"
-                          : "hover:bg-pink-500/10 text-gray-700 hover:text-pink-600 active:bg-pink-500/15"
+                          ? "bg-gradient-to-r from-pink-500/25 to-pink-400/20 text-pink-700 shadow-lg shadow-pink-500/25 border-pink-300/40"
+                          : "hover:bg-gradient-to-r hover:from-pink-500/15 hover:to-pink-400/10 text-gray-600 hover:text-pink-600 hover:shadow-md hover:shadow-pink-500/15 hover:border-pink-200/30"
                       )}
                     >
-                      <div className="flex items-center justify-center flex-shrink-0">
+                      <div className={cn(
+                        "flex items-center justify-center flex-shrink-0 relative",
+                        "rounded-xl p-1.5",
+                        isActive
+                          ? "bg-pink-500/20 shadow-sm"
+                          : "group-hover:bg-pink-500/10"
+                      )}>
                         <Icon className={cn(
-                          isMobile ? "w-5 h-5" : "w-3.5 h-3.5",
+                          isMobile ? "w-5 h-5" : "w-4 h-4",
                           isActive
-                            ? "text-pink-600"
-                            : "text-gray-700",
-                          "transition-colors duration-200"
+                            ? "text-pink-700 drop-shadow-sm"
+                            : "text-gray-600 group-hover:text-pink-600",
+                          "transition-all duration-300 transform"
                         )} />
                       </div>
 
@@ -184,17 +204,23 @@ export default function Sidebar({ collapsed, isMobile = false, isOpen = false, o
                           className="flex items-center justify-between w-full ml-3"
                         >
                           <span className={cn(
-                            "font-medium flex items-center transition-colors duration-200",
-                            isMobile ? "text-base" : "text-[10px]",
+                            "font-semibold flex items-center transition-all duration-300",
+                            "tracking-wide",
+                            isMobile ? "text-base" : "text-xs",
                             isActive
-                              ? "text-pink-600"
-                              : "text-gray-700"
+                              ? "text-pink-700 drop-shadow-sm"
+                              : "text-gray-600 group-hover:text-pink-600"
                           )}>
                             {label}
                           </span>
-                          {/* Active indicator for mobile */}
+                          {/* Enhanced active indicator */}
                           {isMobile && isActive && (
-                            <div className="w-2 h-2 bg-pink-500 rounded-full flex-shrink-0" />
+                            <motion.div 
+                              className="w-2.5 h-2.5 bg-gradient-to-r from-pink-500 to-pink-400 rounded-full flex-shrink-0 shadow-sm shadow-pink-500/50"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 500 }}
+                            />
                           )}
                         </motion.div>
                       )}
@@ -206,30 +232,35 @@ export default function Sidebar({ collapsed, isMobile = false, isOpen = false, o
           </nav>
         </div>
 
-        {/* Decorative Element */}
+        {/* Enhanced Decorative Element */}
         <motion.div
           layout
           className={cn(
-            "flex justify-center",
-            isMobile ? "mt-4 mb-2" : "mt-2"
+            "flex justify-center relative",
+            isMobile ? "mt-6 mb-3" : "mt-4"
           )}
         >
           <div className={cn(
-            "bg-pink-500/30 rounded-full",
-            isMobile ? "w-16 h-0.5" : "w-12 h-0.5"
-          )} />
+            "bg-gradient-to-r from-transparent via-pink-400/40 to-transparent rounded-full relative",
+            "shadow-sm shadow-pink-500/20",
+            isMobile ? "w-20 h-1" : "w-16 h-1"
+          )}>
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-300/30 to-pink-500/30 rounded-full blur-sm" />
+          </div>
         </motion.div>
 
-        {/* Mobile Footer Info */}
+        {/* Enhanced Mobile Footer Info */}
         {isMobile && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-2 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-3 text-center px-4 py-2 bg-gradient-to-r from-pink-100/50 to-pink-200/30 rounded-xl border border-pink-200/40"
           >
-            <p className="text-xs text-pink-500/70 font-medium">
+            <p className="text-xs text-pink-600/80 font-semibold tracking-wide">
               Admin Panel
             </p>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full mx-auto mt-1" />
           </motion.div>
         )}
       </div>
