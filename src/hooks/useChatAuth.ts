@@ -1,7 +1,8 @@
 import { useAuth } from '../contexts/AuthContext';
+import { User } from 'firebase/auth';
 
 interface ChatAuthState {
-  user: any;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Upload, Trash2, Eye, Wifi, WifiOff } from 'lucide-react';
+import { Search, Upload, Trash2, Eye } from 'lucide-react';
 import { Customer, CustomerFilter, CustomerStats } from '../../types/customer';
 import { getCustomers, searchCustomers, deleteCustomer, getCustomerStats } from '../../lib/customerService';
 import { useAuth } from '../../contexts/AuthContext';
 import DataImport from '../../components/DataImport';
-import useNetworkStatus from '../../hooks/useNetworkStatus';
+// Removed unused import
 
 export default function CustomersPage() {
   const { user } = useAuth();
@@ -16,8 +16,7 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter] = useState<CustomerFilter>({ status: 'all' });
   const [showImport, setShowImport] = useState(false);
-  const [usingCachedData, setUsingCachedData] = useState(false);
-  const networkStatus = useNetworkStatus();
+  // Removed unused state variables
   const [stats, setStats] = useState<CustomerStats>({
     totalCustomers: 0,
     activeCustomers: 0,
@@ -135,25 +134,7 @@ export default function CustomersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-100 p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Network Status Banner */}
-        {!networkStatus.isOnline && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center gap-2">
-            <WifiOff className="h-5 w-5 text-red-600" />
-            <span className="text-red-800">You are currently offline. Some features may not be available.</span>
-          </div>
-        )}
-        {networkStatus.isOnline && !networkStatus.isFirestoreConnected && (
-          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2">
-            <Wifi className="h-5 w-5 text-yellow-600" />
-            <span className="text-yellow-800">Database connection issues detected. Real-time updates may be delayed.</span>
-          </div>
-        )}
-        {usingCachedData && (
-          <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg flex items-center gap-2">
-            <Eye className="h-5 w-5 text-blue-600" />
-            <span className="text-blue-800">Showing cached data. Some information may not be up to date.</span>
-          </div>
-        )}
+
         
         {/* Header */}
         <div className="mb-8">

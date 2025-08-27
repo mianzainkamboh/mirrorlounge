@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import TestComponent from '@/components/TestComponent';
+
 import { 
   Category,
   Service,
@@ -409,8 +409,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100 relative overflow-hidden">
-      {/* Test Component for debugging useEffect */}
-      <TestComponent />
+
       
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-30">

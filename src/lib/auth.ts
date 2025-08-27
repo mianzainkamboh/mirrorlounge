@@ -178,22 +178,22 @@ export const createAdminUser = async (): Promise<{
     if (!auth) {
       return { success: false, error: "Firebase auth is not initialized" };
     }
-    console.log("Creating admin user: ahmadxeikh786@gmail.com");
+    console.log("Creating admin user: admin@mirrorbeauty.com");
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      "ahmadxeikh786@gmail.com",
-      "786786"
+      "admin@mirrorbeauty.com",
+      "admin123"
     );
 
     // Set display name
-    await updateProfile(userCredential.user, { displayName: "Ahmad Sheikh" });
+    await updateProfile(userCredential.user, { displayName: "Admin User" });
 
     // Create user role in Firestore
     await setUserRole(
       userCredential.user.uid,
-      "ahmadxeikh786@gmail.com",
+      "admin@mirrorbeauty.com",
       "admin",
-      "Ahmad Sheikh"
+      "Admin User"
     );
 
     console.log("Admin user created successfully");
